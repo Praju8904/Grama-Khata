@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimary">#2D6A4F</color>
+    <color name="colorPrimaryVariant">#52B788</color>
+    <color name="colorSecondary">#F4A261</color>
+    <color name="colorBackground">#FAFAF7</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorError">#E63946</color>
+    <color name="colorCreditGreen">#40916C</color>
+    <color name="colorDebitRed">#E63946</color>
+    <color name="colorTextPrimary">#1B1B1B</color>
+    <color name="colorTextSecondary">#6B7280</color>
+    <color name="colorCardBackground">#FFFFFF</color>
+    <color name="colorDivider">#E5E7EB</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
