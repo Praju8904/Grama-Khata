@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_whatsapp"
+        android:title="@string/menu_whatsapp"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/action_daily_report"
+        android:title="@string/menu_daily_report"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/action_edit"
+        android:title="@string/menu_edit_customer"
+        android:showAsAction="never" />
+</menu>

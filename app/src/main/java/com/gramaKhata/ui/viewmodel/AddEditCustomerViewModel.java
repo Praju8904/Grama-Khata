@@ -96,6 +96,25 @@ public class AddEditCustomerViewModel extends AndroidViewModel {
         photoUri.setValue(uri == null ? "" : uri);
     }
 
+    public void deleteCustomer(int customerId) {
+        if (customerId <= 0) {
+            throw new IllegalArgumentException("customer id must be positive");
+        }
+        LiveData<CustomerEntity> source = repository.getCustomerById(customerId);
+        Observer<CustomerEntity> oneShotObserver = new Observer<CustomerEntity>() {
+            @Override
+            public void onChanged(CustomerEntity customer) {
+                if (customer == null) {
+                    source.removeObserver(this);
+                    throw new IllegalStateException("Customer not found for id: " + customerId);
+                }
+                repository.deleteCustomer(customer);
+                source.removeObserver(this);
+            }
+        };
+        source.observeForever(oneShotObserver);
+    }
+
     @Override
     protected void onCleared() {
         detachObserver();

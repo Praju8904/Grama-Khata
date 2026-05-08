@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/customerListFragment">
+
+    <fragment
+        android:id="@+id/customerListFragment"
+        android:name="com.gramaKhata.ui.fragments.CustomerListFragment"
+        android:label="@string/app_name">
+        <action
+            android:id="@+id/action_to_detail"
+            app:destination="@id/customerDetailFragment">
+            <argument
+                android:name="customerId"
+                app:argType="integer"
+                android:defaultValue="-1" />
+        </action>
+        <action
+            android:id="@+id/action_to_add_customer"
+            app:destination="@id/addEditCustomerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/customerDetailFragment"
+        android:name="com.gramaKhata.ui.fragments.CustomerDetailFragment"
+        android:label="@string/app_name">
+        <argument
+            android:name="customerId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_to_edit_customer"
+            app:destination="@id/addEditCustomerFragment">
+            <argument
+                android:name="customerId"
+                app:argType="integer" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/addEditCustomerFragment"
+        android:name="com.gramaKhata.ui.fragments.AddEditCustomerFragment"
+        android:label="@string/app_name">
+        <argument
+            android:name="customerId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+</navigation>
