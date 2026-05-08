@@ -1,4 +1,4 @@
-package com.example.grama_khata;
+package com.gramaKhata;
 
 import org.junit.Test;
 

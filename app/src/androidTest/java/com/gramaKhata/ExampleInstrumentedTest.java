@@ -1,4 +1,4 @@
-package com.example.grama_khata;
+package com.gramaKhata;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.example.grama_khata", appContext.getPackageName());
+        assertEquals("com.gramaKhata", appContext.getPackageName());
     }
 }
