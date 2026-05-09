@@ -22,4 +22,7 @@ public interface TransactionDao {
 
     @Query("SELECT SUM(CASE WHEN type='CREDIT' THEN amount ELSE -amount END) FROM transactions WHERE customerId = :customerId")
     LiveData<Double> getNetBalance(int customerId);
+
+    @Query("SELECT SUM(CASE WHEN type='CREDIT' THEN amount ELSE -amount END) FROM transactions WHERE timestamp >= :startTime AND timestamp <= :endTime")
+    LiveData<Double> getTotalOutstandingBetween(long startTime, long endTime);
 }

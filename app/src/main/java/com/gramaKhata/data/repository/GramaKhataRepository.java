@@ -49,6 +49,12 @@ public class GramaKhataRepository {
         return result;
     }
 
+    public LiveData<Double> getTotalOutstandingBetween(long startTime, long endTime) {
+        MediatorLiveData<Double> result = new MediatorLiveData<>();
+        result.addSource(transactionDao.getTotalOutstandingBetween(startTime, endTime), result::setValue);
+        return result;
+    }
+
     public void insertCustomer(CustomerEntity customer) {
         AppExecutors.getInstance().diskIO().execute(() -> customerDao.insertCustomer(customer));
     }

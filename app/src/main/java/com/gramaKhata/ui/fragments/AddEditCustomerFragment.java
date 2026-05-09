@@ -94,7 +94,7 @@ public class AddEditCustomerFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.name.observe(getViewLifecycleOwner(), name -> {
-            if (!isEditing || hasPopulatedName || name == null) {
+            if (!isEditing || hasPopulatedName || name == null || name.trim().isEmpty()) {
                 return;
             }
             binding.etName.setText(name);
@@ -102,7 +102,7 @@ public class AddEditCustomerFragment extends Fragment {
         });
 
         viewModel.phone.observe(getViewLifecycleOwner(), phone -> {
-            if (!isEditing || hasPopulatedPhone || phone == null) {
+            if (!isEditing || hasPopulatedPhone || phone == null || phone.trim().isEmpty()) {
                 return;
             }
             binding.etPhone.setText(phone);

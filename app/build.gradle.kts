@@ -10,8 +10,6 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     FileInputStream(localPropertiesFile).use { localProperties.load(it) }
 }
-val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY")
-    ?: throw GradleException("Missing GEMINI_API_KEY in local.properties")
 
 android {
     namespace = "com.gramaKhata"
@@ -29,7 +27,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+
     }
 
     buildTypes {
@@ -63,7 +61,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+
+    implementation("com.google.guava:guava:33.0.0-android")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")

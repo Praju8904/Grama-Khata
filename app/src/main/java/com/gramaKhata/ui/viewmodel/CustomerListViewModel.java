@@ -15,6 +15,7 @@ import com.gramaKhata.data.db.CustomerEntity;
 import com.gramaKhata.data.repository.GramaKhataRepository;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,8 +26,16 @@ public class CustomerListViewModel extends AndroidViewModel {
     private final GramaKhataRepository repository;
     private final LiveData<List<CustomerDao.CustomerWithBalance>> allCustomers;
     private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
+    private final MutableLiveData<Timeframe> timeframeFilter = new MutableLiveData<>(Timeframe.TODAY);
     private final MediatorLiveData<List<CustomerDao.CustomerWithBalance>> filteredCustomers =
             new MediatorLiveData<>();
+            
+    public enum Timeframe {
+        TODAY,
+        YESTERDAY,
+        DAY_BEFORE_YESTERDAY,
+        ALL_TIME
+    }
 
     public CustomerListViewModel(@NonNull Application application) {
         super(application);
@@ -46,6 +55,12 @@ public class CustomerListViewModel extends AndroidViewModel {
     public void setSearchQuery(String query) {
         searchQuery.setValue(query == null ? "" : query);
     }
+    
+    public void setTimeframeFilter(Timeframe timeframe) {
+        if (timeframe != null && timeframeFilter.getValue() != timeframe) {
+            timeframeFilter.setValue(timeframe);
+        }
+    }
 
     public void deleteCustomer(CustomerEntity customer) {
         if (customer == null) {
@@ -55,17 +70,29 @@ public class CustomerListViewModel extends AndroidViewModel {
     }
 
     public LiveData<Double> getTotalOutstanding() {
-        return Transformations.map(allCustomers, customers -> {
-            if (customers == null || customers.isEmpty()) {
-                return 0d;
+        return Transformations.switchMap(timeframeFilter, timeframe -> {
+            long startTime = 0;
+            long endTime = Long.MAX_VALUE;
+            
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            
+            if (timeframe == Timeframe.TODAY) {
+                startTime = cal.getTimeInMillis();
+            } else if (timeframe == Timeframe.YESTERDAY) {
+                endTime = cal.getTimeInMillis() - 1;
+                cal.add(Calendar.DAY_OF_YEAR, -1);
+                startTime = cal.getTimeInMillis();
+            } else if (timeframe == Timeframe.DAY_BEFORE_YESTERDAY) {
+                cal.add(Calendar.DAY_OF_YEAR, -1);
+                endTime = cal.getTimeInMillis() - 1;
+                cal.add(Calendar.DAY_OF_YEAR, -1);
+                startTime = cal.getTimeInMillis();
             }
-            double total = 0d;
-            for (CustomerDao.CustomerWithBalance customer : customers) {
-                if (customer != null && customer.netBalance > 0) {
-                    total += customer.netBalance;
-                }
-            }
-            return total;
+            return repository.getTotalOutstandingBetween(startTime, endTime);
         });
     }
 

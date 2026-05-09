@@ -19,8 +19,8 @@ public class AddEditCustomerViewModel extends AndroidViewModel {
     private Observer<CustomerEntity> customerObserver;
     private long existingCreatedAt = -1L;
 
-    public final MutableLiveData<String> name = new MutableLiveData<>("");
-    public final MutableLiveData<String> phone = new MutableLiveData<>("");
+    public final MutableLiveData<String> name = new MutableLiveData<>(null);
+    public final MutableLiveData<String> phone = new MutableLiveData<>(null);
     public final MutableLiveData<String> photoUri = new MutableLiveData<>("");
     public final MutableLiveData<Boolean> saveSuccess = new MutableLiveData<>();
     public final MutableLiveData<String> validationError = new MutableLiveData<>();

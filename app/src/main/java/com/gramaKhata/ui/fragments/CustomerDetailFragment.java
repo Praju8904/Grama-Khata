@@ -29,10 +29,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.gramaKhata.BuildConfig;
 import com.gramaKhata.R;
-import com.gramaKhata.data.ai.GeminiService;
 import com.gramaKhata.data.db.CustomerEntity;
 import com.gramaKhata.data.db.TransactionEntity;
-import com.gramaKhata.databinding.DialogAiReminderBinding;
 import com.gramaKhata.databinding.FragmentCustomerDetailBinding;
 import com.gramaKhata.ui.adapter.TransactionAdapter;
 import com.gramaKhata.ui.viewmodel.CustomerDetailViewModel;
@@ -52,7 +50,6 @@ public class CustomerDetailFragment extends Fragment {
     private FragmentCustomerDetailBinding binding;
     private CustomerDetailViewModel viewModel;
     private TransactionAdapter transactionAdapter;
-    private GeminiService geminiService;
     private int customerId = -1;
     private CustomerEntity currentCustomer;
     private double currentBalance = 0d;
@@ -79,20 +76,12 @@ public class CustomerDetailFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(CustomerDetailViewModel.class);
         viewModel.setCustomerId(customerId);
-        geminiService = new GeminiService(BuildConfig.GEMINI_API_KEY);
 
         setupToolbar();
         setupTransactions();
         setupButtons();
         observeData();
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        analyzeCustomerRisk();
-    }
-
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> findNavController().navigateUp());
         binding.toolbar.inflateMenu(R.menu.menu_customer_detail);
@@ -131,7 +120,8 @@ public class CustomerDetailFragment extends Fragment {
         binding.btnAddCredit.setOnClickListener(v -> showAddTransactionSheet(TYPE_CREDIT));
         binding.btnAddPayment.setOnClickListener(v -> showAddTransactionSheet(TYPE_PAYMENT));
         binding.btnCall.setOnClickListener(v -> dialCustomer());
-        binding.btnAiReminder.setOnClickListener(v -> showAiReminderDialog());
+        binding.btnWhatsapp.setOnClickListener(v -> sendWhatsApp());
+        binding.btnSms.setOnClickListener(v -> sendSms());
     }
 
     private void observeData() {
@@ -159,10 +149,6 @@ public class CustomerDetailFragment extends Fragment {
         viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
             currentTransactions = transactions == null ? new ArrayList<>() : transactions;
             transactionAdapter.updateList(currentTransactions);
-            if (getViewLifecycleOwner().getLifecycle().getCurrentState()
-                    .isAtLeast(Lifecycle.State.STARTED)) {
-                analyzeCustomerRisk();
-            }
         });
     }
 
@@ -185,81 +171,43 @@ public class CustomerDetailFragment extends Fragment {
         sheet.show(getChildFragmentManager(), "add_transaction_sheet");
     }
 
-    private void analyzeCustomerRisk() {
-        binding.tvRiskScore.setText(R.string.analyzing_risk);
-        geminiService.analyzeCustomerRisk(currentTransactions, new GeminiService.GeminiCallback() {
-            @Override
-            public void onSuccess(String result) {
-                if (binding == null || !isAdded()) {
-                    return;
-                }
-                String riskLevel = parseRiskLevel(result);
-                binding.tvRiskScore.setText(getString(R.string.risk_label, riskLevel));
-                binding.tvRiskScore.setTextColor(Color.parseColor(colorForRisk(riskLevel)));
-            }
+    private void sendWhatsApp() {
+        if (currentCustomer == null || TextUtils.isEmpty(currentCustomer.getPhone())) {
+            Snackbar.make(binding.getRoot(), R.string.phone_unavailable, Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+        String shopName = PreferencesManager.getShopName(requireContext());
+        String message = viewModel.generateWhatsAppMessage(shopName);
+        String phone = currentCustomer.getPhone().replaceAll("[^0-9+]", "");
+        if (!phone.startsWith("+") && phone.length() == 10) {
+            phone = "+91" + phone;
+        }
 
-            @Override
-            public void onError(String error) {
-                if (binding == null || !isAdded()) {
-                    return;
-                }
-                binding.tvRiskScore.setText(getString(R.string.risk_label, getString(R.string.risk_medium)));
-                binding.tvRiskScore.setTextColor(Color.parseColor("#F4A261"));
-            }
-        });
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("https://api.whatsapp.com/send?phone=" + phone + "&text=" + Uri.encode(message)));
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            shareWithWhatsAppFallback(message);
+        }
     }
 
-    private void showAiReminderDialog() {
-        DialogAiReminderBinding dialogBinding = DialogAiReminderBinding.inflate(getLayoutInflater());
-        final String[] aiMessage = {""};
-
-        dialogBinding.pbLoading.setVisibility(View.VISIBLE);
-        dialogBinding.tvAiMessage.setVisibility(View.GONE);
-        dialogBinding.btnSendWhatsapp.setEnabled(false);
-
-        new MaterialAlertDialogBuilder(requireContext())
-                .setView(dialogBinding.getRoot())
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-
-        String customerName = currentCustomer == null ? "" : safeText(currentCustomer.getName());
+    private void sendSms() {
+        if (currentCustomer == null || TextUtils.isEmpty(currentCustomer.getPhone())) {
+            Snackbar.make(binding.getRoot(), R.string.phone_unavailable, Snackbar.LENGTH_SHORT).show();
+            return;
+        }
         String shopName = PreferencesManager.getShopName(requireContext());
-        double dueAmount = Math.max(currentBalance, 0d);
-        geminiService.suggestReminderMessage(customerName, shopName, dueAmount,
-                new GeminiService.GeminiCallback() {
-                    @Override
-                    public void onSuccess(String result) {
-                        if (!isAdded()) {
-                            return;
-                        }
-                        aiMessage[0] = result;
-                        dialogBinding.pbLoading.setVisibility(View.GONE);
-                        dialogBinding.tvAiMessage.setVisibility(View.VISIBLE);
-                        dialogBinding.tvAiMessage.setText(result);
-                        dialogBinding.btnSendWhatsapp.setEnabled(true);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        if (!isAdded()) {
-                            return;
-                        }
-                        aiMessage[0] = error;
-                        dialogBinding.pbLoading.setVisibility(View.GONE);
-                        dialogBinding.tvAiMessage.setVisibility(View.VISIBLE);
-                        dialogBinding.tvAiMessage.setText(error);
-                        dialogBinding.btnSendWhatsapp.setEnabled(true);
-                    }
-                });
-
-        dialogBinding.btnSendWhatsapp.setOnClickListener(v -> {
-            if (TextUtils.isEmpty(aiMessage[0])) {
-                Snackbar.make(dialogBinding.getRoot(), R.string.ai_message_unavailable, Snackbar.LENGTH_SHORT)
-                        .show();
-                return;
-            }
-            shareWithWhatsAppFallback(aiMessage[0]);
-        });
+        String message = viewModel.generateWhatsAppMessage(shopName);
+        
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("smsto:" + currentCustomer.getPhone().trim()));
+        intent.putExtra("sms_body", message);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Snackbar.make(binding.getRoot(), "SMS app not found", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     private void shareWithWhatsAppFallback(String message) {
@@ -277,34 +225,7 @@ public class CustomerDetailFragment extends Fragment {
         }
     }
 
-    private String parseRiskLevel(String response) {
-        if (response == null) {
-            return getString(R.string.risk_medium);
-        }
-        String[] parts = response.trim().split("\\s+");
-        if (parts.length == 0) {
-            return getString(R.string.risk_medium);
-        }
-        String firstWord = parts[0].replaceAll("[^A-Za-z]", "").toLowerCase(Locale.ROOT);
-        if ("low".equals(firstWord)) {
-            return getString(R.string.risk_low);
-        }
-        if ("high".equals(firstWord)) {
-            return getString(R.string.risk_high);
-        }
-        return getString(R.string.risk_medium);
-    }
 
-    private String colorForRisk(String riskLevel) {
-        String normalized = riskLevel == null ? "" : riskLevel.toLowerCase(Locale.ROOT);
-        if (normalized.contains("low")) {
-            return "#40916C";
-        }
-        if (normalized.contains("high")) {
-            return "#E63946";
-        }
-        return "#F4A261";
-    }
 
     private void bindAvatar(String name, String photoUri) {
         if (!TextUtils.isEmpty(photoUri)) {

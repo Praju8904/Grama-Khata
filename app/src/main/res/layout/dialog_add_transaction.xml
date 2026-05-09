@@ -69,14 +69,15 @@
             android:inputType="textCapSentences|textMultiLine" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_save_transaction"
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_height"
         android:layout_marginTop="@dimen/margin_large"
-        android:background="@drawable/bg_button_primary"
+        android:backgroundTint="@color/colorPrimary"
         android:text="@string/save_transaction"
         android:textAllCaps="false"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        app:cornerRadius="12dp" />
 
 </LinearLayout>

@@ -156,28 +156,34 @@
                 tools:itemCount="4"
                 tools:listitem="@layout/item_transaction" />
 
-            <TextView
-                android:id="@+id/tv_risk_score"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_medium"
-                android:background="@drawable/bg_chip_payment"
-                android:paddingStart="@dimen/margin_small"
-                android:paddingTop="4dp"
-                android:paddingEnd="@dimen/margin_small"
-                android:paddingBottom="4dp"
-                android:text="@string/risk_low_badge"
-                android:textAppearance="@style/TextAppearance.GramaKhata.Label"
-                tools:text="Risk: Medium" />
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_ai_reminder"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="@dimen/margin_medium"
-                android:text="@string/ai_reminder_button"
-                android:textAllCaps="false" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_whatsapp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:text="@string/btn_whatsapp"
+                    app:icon="@drawable/ic_whatsapp"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_sms"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:text="@string/btn_sms"
+                    app:icon="@android:drawable/sym_action_chat"
+                    android:textAllCaps="false" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
